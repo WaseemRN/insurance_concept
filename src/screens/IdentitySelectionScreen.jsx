@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,8 @@ import {
   Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS, FONT_SIZES, SPACING, BORDER_RADIUS, Fonts } from '../constants/theme';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import { COLORS, FONT_SIZES, SPACING, Fonts } from '../constants/theme';
 import IdentityCard from '../components/IdentityCard';
 import backButton from '../assets/icons/backButton.png';
 
@@ -17,19 +18,19 @@ const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
 const IdentitySelectionScreen = ({ navigation }) => {
-  const [selectedIdentity, setSelectedIdentity] = useState(null);
-
-  const handleNext = () => {
-    if (!selectedIdentity) {
-      // Don't navigate - user must select an identity first
-      return;
+  const handleCardPress = (identity) => {
+    ReactNativeHapticFeedback.trigger('impactHeavy');
+    if (identity === 'uae') {
+      navigation.navigate('ConnectWatch');
+    } else if (identity === 'international') {
+      navigation.navigate('ConnectWatch');
+    } else if (identity === 'corporate') {
+      navigation.navigate('ConnectWatch');
     }
-
-    // If identity is selected, navigate directly to IDScanScreen
-    navigation.navigate('IDScan', { selectedIdentity });
   };
 
   const handleBack = () => {
+    ReactNativeHapticFeedback.trigger('impactHeavy');
     navigation.goBack();
   };
 
@@ -42,7 +43,7 @@ const IdentitySelectionScreen = ({ navigation }) => {
         <TouchableOpacity
           style={styles.backButton}
           onPress={handleBack}
-          activeOpacity={0.5}
+          activeOpacity={0.7}
         >
           <View style={styles.backButtonCircle}>
             <Image
@@ -55,8 +56,8 @@ const IdentitySelectionScreen = ({ navigation }) => {
 
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.welcomeText}>Welcome</Text>
-          <Text style={styles.subtitleText}>Please select your identity to continue</Text>
+          <Text style={styles.welcomeText}>Welcome.</Text>
+          <Text style={styles.subtitleText}>Select your Identity.</Text>
         </View>
 
         {/* Cards Container */}
@@ -65,36 +66,22 @@ const IdentitySelectionScreen = ({ navigation }) => {
             icon="person"
             title="UAE Resident"
             subtitle="Renew Visa & Insurance"
-            selected={selectedIdentity === 'uae'}
-            onPress={() => setSelectedIdentity('uae')}
+            onPress={() => handleCardPress('uae')}
           />
 
           <IdentityCard
             icon="plane"
             title="International Traveler"
             subtitle="Instant Tourist Cover"
-            selected={selectedIdentity === 'international'}
-            onPress={() => setSelectedIdentity('international')}
+            onPress={() => handleCardPress('international')}
           />
 
           <IdentityCard
             icon="building"
             title="Corporate Member"
             subtitle="Activate Group Policy"
-            selected={selectedIdentity === 'corporate'}
-            onPress={() => setSelectedIdentity('corporate')}
+            onPress={() => handleCardPress('corporate')}
           />
-        </View>
-
-        {/* Next Button */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.nextButton}
-            onPress={handleNext}
-            activeOpacity={0.5}
-          >
-            <Text style={styles.nextButtonText}>Next</Text>
-          </TouchableOpacity>
         </View>
       </SafeAreaView>
     </View>
@@ -144,24 +131,6 @@ const styles = StyleSheet.create({
   cardsContainer: {
     flex: 1,
     paddingHorizontal: isTablet ? SPACING.xl * 2 : SPACING.lg,
-  },
-  buttonContainer: {
-    paddingHorizontal: isTablet ? SPACING.xl * 2 : SPACING.lg,
-    paddingBottom: SPACING.lg,
-  },
-  nextButton: {
-    backgroundColor: COLORS.buttonPrimary,
-    borderRadius: BORDER_RADIUS.full,
-    paddingVertical: isTablet ? 18 : 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: isTablet ? '60%' : '100%',
-  },
-  nextButtonText: {
-    color: COLORS.white,
-    top:-2,
-    fontSize: isTablet ? 20 : FONT_SIZES.h2,
-    fontFamily: Fonts.semiBold,
   },
 });
 
