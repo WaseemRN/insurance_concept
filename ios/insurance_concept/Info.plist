@@ -34,7 +34,11 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need access to your microphone to record audio for scanning.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera to scan ID cards.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
@@ -51,5 +55,15 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>DarkerGrotesque-Black.ttf</string>
+		<string>DarkerGrotesque-Bold.ttf</string>
+		<string>DarkerGrotesque-ExtraBold.ttf</string>
+		<string>DarkerGrotesque-Medium.ttf</string>
+		<string>DarkerGrotesque-SemiBold.ttf</string>
+		<string>DarkerGrotesque-Regular.ttf</string>
+		<string>DarkerGrotesque-Light.ttf</string>
+	</array>
 </dict>
 </plist>
