@@ -155,7 +155,8 @@ const styles = StyleSheet.create({
     paddingVertical: isTablet ? 18 : 14,
     alignItems: 'center',
     justifyContent: 'center',
-    width: isTablet ? '60%' : '100%',
+    width: isTablet ? '40%' : '100%',
+    alignSelf: isTablet ? 'center' : 'auto',
   },
   nextButtonText: {
     color: COLORS.white,

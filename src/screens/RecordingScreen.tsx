@@ -21,6 +21,7 @@ import { COLORS, FONT_SIZES, SPACING, BORDER_RADIUS, Fonts } from '../constants/
 import Toast from 'react-native-toast-message';
 
 const { width, height } = Dimensions.get('window');
+const isTablet = width >= 768;
 const MAX_RECORDING_TIME = 6000; // 6 seconds in milliseconds
 const WAVE_BAR_COUNT = 50; // More bars for full width smoother wave effect
 
@@ -715,7 +716,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: SPACING.lg,
+    paddingHorizontal: isTablet ? SPACING.xxl * 2 : SPACING.lg,
     paddingTop: SPACING.md,
   },
   // Back Button
@@ -748,13 +749,13 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
   },
   title: {
-    fontSize: FONT_SIZES.h1,
+    fontSize: isTablet ? 42 : FONT_SIZES.h1,
     fontFamily: Fonts.bold,
     color: COLORS.white,
     marginBottom: SPACING.xs,
   },
   subtitle: {
-    fontSize: FONT_SIZES.body,
+    fontSize: isTablet ? 18 : FONT_SIZES.body,
     fontFamily: Fonts.regular,
     color: COLORS.textSecondary,
     opacity: 0.8,
@@ -765,18 +766,19 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
   },
   stepNumber: {
-    fontSize: 64,
+    fontSize: isTablet ? 80 : 64,
     fontFamily: Fonts.bold,
     color: COLORS.white,
   },
   // Wave Animation - Full Width
   waveContainerWrapper: {
-    width: width - (SPACING.lg * 2),
-    height: 200,
-    marginBottom: SPACING.xxl,
+    width: isTablet ? Math.min(width - (SPACING.xxl * 4), 700) : width - (SPACING.lg * 2),
+    height: isTablet ? 250 : 200,
+    marginBottom: isTablet ? SPACING.lg : SPACING.xxl,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+    alignSelf: 'center',
   },
   waveContainer: {
     width: '100%',
@@ -830,10 +832,11 @@ const styles = StyleSheet.create({
   // Instruction Text
   instructionContainer: {
     alignItems: 'center',
-    marginBottom: SPACING.xxl,
+    marginBottom: isTablet ? SPACING.xxl : SPACING.xxl,
+    marginTop: isTablet ? -SPACING.lg : 0,
   },
   instructionText: {
-    fontSize: FONT_SIZES.h2,
+    fontSize: isTablet ? 28 : FONT_SIZES.h2,
     fontFamily: Fonts.bold,
     color: COLORS.white,
     textAlign: 'center',
@@ -844,13 +847,15 @@ const styles = StyleSheet.create({
   },
   // Small Scan Button with Microphone
   scanButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: isTablet ? 75 : 70,
+    height: isTablet ? 75 : 70,
+    borderRadius: isTablet ? 37.5 : 35,
     backgroundColor: '#2196F3',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: isTablet ? -SPACING.xl : 0,
     alignSelf: 'center',
+    marginBottom: isTablet ? SPACING.lg : 0,
     shadowColor: '#2196F3',
     shadowOffset: {
       width: 0,
@@ -866,8 +871,8 @@ const styles = StyleSheet.create({
   },
   // Microphone Icon
   micIcon: {
-    width: 30,
-    height: 30,
+    width: isTablet ? 32 : 30,
+    height: isTablet ? 32 : 30,
     tintColor: COLORS.white,
   },
 });

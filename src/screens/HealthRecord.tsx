@@ -17,6 +17,7 @@ import { RootStackParamList } from '../navigation/types';
 import { COLORS, FONT_SIZES, SPACING, BORDER_RADIUS, Fonts } from '../constants/theme';
 
 const { width, height } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 // Health tags with different colors
 interface HealthTag {
@@ -55,9 +56,8 @@ const HealthRecord: React.FC = () => {
 
   // Generate random results on mount
   useEffect(() => {
-    // Random health score between 75 and 100
-    const randomScore = Math.floor(Math.random() * 26) + 75;
-    setHealthScore(randomScore);
+    // Set static health score to 92
+    setHealthScore(92);
 
     // Select 3 random health tags
     const shuffled = [...HEALTH_TAGS].sort(() => 0.5 - Math.random());
@@ -133,9 +133,9 @@ const HealthRecord: React.FC = () => {
               </View>
             </TouchableOpacity>
 
-            <View style={styles.goldTierButton}>
+            {/* <View style={styles.goldTierButton}>
               <Text style={styles.goldTierText}>GOLD TIER</Text>
-            </View>
+            </View> */}
           </View>
 
           {/* Health Score Heading at Top */}
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.xxl,
   },
   content: {
-    paddingHorizontal: SPACING.lg,
+    paddingHorizontal: isTablet ? SPACING.xxl * 2 : SPACING.lg,
     paddingTop: SPACING.md,
   },
   header: {
@@ -328,13 +328,13 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.md,
   },
   title: {
-    fontSize: FONT_SIZES.h1,
+    fontSize: isTablet ? 42 : FONT_SIZES.h1,
     fontFamily: Fonts.bold,
     color: 'rgba(255, 255, 255, 0.85)',
     marginBottom: SPACING.xs,
   },
   subtitle: {
-    fontSize: FONT_SIZES.body,
+    fontSize: isTablet ? 18 : FONT_SIZES.body,
     fontFamily: Fonts.regular,
     color: 'rgba(255, 255, 255, 0.65)',
     top:-10,
@@ -346,13 +346,13 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
   },
   scoreValue: {
-    fontSize: 64,
+    fontSize: isTablet ? 80 : 64,
     fontFamily: Fonts.bold,
     color: 'rgba(255, 255, 255, 0.9)',
     marginRight: SPACING.xs,
   },
   scoreMax: {
-    fontSize: FONT_SIZES.h2,
+    fontSize: isTablet ? 32 : FONT_SIZES.h2,
     fontFamily: Fonts.regular,
     color: 'rgba(255, 255, 255, 0.6)',
   },
@@ -364,19 +364,20 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
   },
   videoBackground: {
-    width: width * 1,
-    height: height * 0.65,
+    width: isTablet ? Math.min(width * 0.7, 600) : width * 1,
+    height: isTablet ? height * 0.5 : height * 0.65,
+    maxWidth: isTablet ? 600 : width * 1,
     backgroundColor: 'rgba(4, 8, 19, 1)',
-    borderRadius: 16,
-    top:30,
+    borderRadius: isTablet ? 20 : 16,
+    top: isTablet ? 40 : 30,
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
+    alignSelf: 'center',
   },
   video: {
     width: '100%',
-
-    height: '110%',
+    height: isTablet ? '100%' : '110%',
     alignSelf: 'center',
   },
   healthTag: {
@@ -386,6 +387,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
     borderRadius: 16,
+    marginHorizontal: isTablet ? width * 0.15 : 0,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -403,7 +405,7 @@ const styles = StyleSheet.create({
     marginRight: SPACING.xs,
   },
   tagText: {
-    fontSize: FONT_SIZES.bodySmall,
+    fontSize: isTablet ? 14 : FONT_SIZES.bodySmall,
     fontFamily: Fonts.semiBold,
     color: COLORS.white,
   },
@@ -413,9 +415,10 @@ const styles = StyleSheet.create({
   },
   proceedButton: {
     backgroundColor: COLORS.buttonPrimary,
-    paddingVertical: SPACING.md,
+    paddingVertical: isTablet ? SPACING.lg : SPACING.md,
     borderRadius: BORDER_RADIUS.full,
-    
+    width: isTablet ? '40%' : '100%',
+    alignSelf: isTablet ? 'center' : 'auto',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: COLORS.buttonPrimary,
@@ -429,7 +432,7 @@ const styles = StyleSheet.create({
   },
   proceedButtonText: {
     color: COLORS.white,
-    fontSize: FONT_SIZES.h3,
+    fontSize: isTablet ? 22 : FONT_SIZES.h3,
     fontFamily: Fonts.semiBold,
     textAlign: 'center',
   },

@@ -12,7 +12,8 @@ import {
 } from 'react-native-vision-camera';
 
 const { width } = Dimensions.get('window');
-const FRAME_WIDTH = width * 0.85;
+const isTablet = width >= 768;
+const FRAME_WIDTH = isTablet ? Math.min(width * 0.7, 600) : width * 0.85;
 const FRAME_HEIGHT = FRAME_WIDTH * 0.6;
 
 const IDScannerScreen=() =>{
@@ -75,9 +76,9 @@ const styles = StyleSheet.create({
 
   instruction: {
     position: 'absolute',
-    top: 80,
+    top: isTablet ? 100 : 80,
     color: '#fff',
-    fontSize: 18,
+    fontSize: isTablet ? 22 : 18,
     fontWeight: '500',
   },
 

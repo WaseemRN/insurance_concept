@@ -20,6 +20,7 @@ import { COLORS, FONT_SIZES, SPACING, Fonts } from '../constants/theme';
 // Using ScrollView instead of carousel to avoid initialization errors
 
 const { width, height } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 // Gradient Text Component with proper sizing - using theme colors
 const GradientText: React.FC<{ style?: any; colors?: string[]; children: React.ReactNode }> = ({
@@ -136,26 +137,26 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
   carouselItem: {
-    width: width - 60,
+    width: isTablet ? Math.min(width - 120, 600) : width - 60,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.md,
-    paddingBottom: SPACING.lg,
-    marginBottom: SPACING.md,
+    paddingHorizontal: isTablet ? SPACING.xxl * 2 : SPACING.lg,
+    paddingTop: isTablet ? SPACING.md : SPACING.sm,
+    paddingBottom: isTablet ? SPACING.sm : SPACING.xs,
+    marginBottom: SPACING.xs,
   },
   backButton: {
     marginRight: SPACING.md,
     marginTop: SPACING.sm,
   },
   backButtonCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: isTablet ? 48 : 40,
+    height: isTablet ? 48 : 40,
+    borderRadius: isTablet ? 24 : 20,
     backgroundColor: COLORS.white,
     justifyContent: 'center',
     alignItems: 'center',
@@ -169,11 +170,11 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   backButtonIcon: {
-    width: 20,
-    height: 20,
+    width: isTablet ? 24 : 20,
+    height: isTablet ? 24 : 20,
   },
   headerText: {
-    fontSize: FONT_SIZES.h2,
+    fontSize: isTablet ? 28 : FONT_SIZES.h2,
     fontFamily: Fonts.bold,
     color: COLORS.white,
     flex: 1,
@@ -215,7 +216,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   glossyCardContainer: {
-    width: width - (SPACING.lg * 4),
+    width: isTablet ? Math.min(width - (SPACING.xxl * 4), 550) : width - (SPACING.lg * 4),
     marginBottom: SPACING.xl,
     marginRight: 0,
     marginLeft: 0,
@@ -345,12 +346,12 @@ const styles = StyleSheet.create({
     backgroundColor: `rgba(218, 165, 32, 0.25)`, // Glossy gold for active
   },
   tierName: {
-    fontSize: FONT_SIZES.h1,
+    fontSize: isTablet ? 42 : FONT_SIZES.h1,
     fontFamily: Fonts.bold,
     alignSelf: 'center',
     color: '#FFFFFF', // Pure white for maximum contrast
     textAlign: 'center',
-    letterSpacing: 2,
+    letterSpacing: isTablet ? 3 : 2,
     textShadowColor: 'rgba(0, 0, 0, 0.8)', // Dark shadow for better readability
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
@@ -430,10 +431,10 @@ const styles = StyleSheet.create({
     textShadowRadius: 6,
   },
   applePayButton: {
-    width: width - (SPACING.lg * 2),
-    height: 60,
+    width: isTablet ? '40%' : width - (SPACING.lg * 2),
+    height: isTablet ? 70 : 60,
     backgroundColor: COLORS.primary,
-    borderRadius: 30,
+    borderRadius: isTablet ? 35 : 30,
     borderWidth: 1,
     borderColor: `rgba(61, 40, 222, 0.5)`, // COLORS.primary with opacity
     flexDirection: 'row',
@@ -441,7 +442,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     marginBottom: SPACING.xxl,
-    marginHorizontal: SPACING.lg,
+    marginHorizontal: isTablet ? 0 : SPACING.lg,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.8,
@@ -450,7 +451,7 @@ const styles = StyleSheet.create({
   },
   applePayText: {
     color: COLORS.white,
-    fontSize: FONT_SIZES.body,
+    fontSize: isTablet ? 18 : FONT_SIZES.body,
     fontFamily: Fonts.semiBold,
     marginHorizontal: SPACING.xs,
   },
@@ -460,27 +461,28 @@ const styles = StyleSheet.create({
     tintColor: '#FFFFFF',
   },
   qualificationContainer: {
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.md,
-    paddingBottom: SPACING.lg,
+    paddingHorizontal: isTablet ? SPACING.xxl * 2 : SPACING.lg,
+    paddingTop: isTablet ? -SPACING.xl : -SPACING.md,
+    paddingBottom: isTablet ? SPACING.sm : SPACING.md,
     alignItems: 'center',
   },
   qualificationTitle: {
-    fontSize: FONT_SIZES.h1,
+    fontSize: isTablet ? 42 : FONT_SIZES.h1,
     fontFamily: Fonts.bold,
     color: COLORS.white,
     textAlign: 'center',
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.xs,
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
   qualificationSubtitle: {
-    fontSize: FONT_SIZES.body,
+    fontSize: isTablet ? 18 : FONT_SIZES.body,
     fontFamily: Fonts.regular,
     color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: isTablet ? 26 : 22,
+    marginBottom: SPACING.xs,
   },
 });
 
@@ -497,8 +499,8 @@ const AwardScreen: React.FC = () => {
       useNativeDriver: false,
       listener: (event: any) => {
         const offsetX = event.nativeEvent.contentOffset.x;
-        const cardWidth = width * 0.65;
-        const padding = width * 0.175;
+        const cardWidth = isTablet ? Math.min(width * 0.55, 500) : width * 0.65;
+        const padding = isTablet ? width * 0.15 : width * 0.175;
         const index = Math.round((offsetX - padding) / cardWidth);
         if (index !== selectedTierIndex && index >= 0 && index < TIERS.length) {
           setSelectedTierIndex(index);
@@ -510,8 +512,8 @@ const AwardScreen: React.FC = () => {
   // Handle tier selection
   const handleTierSelect = (index: number) => {
     setSelectedTierIndex(index);
-    const cardWidth = width * 0.65;
-    const padding = width * 0.175;
+    const cardWidth = isTablet ? Math.min(width * 0.55, 500) : width * 0.65;
+    const padding = isTablet ? width * 0.15 : width * 0.175;
     scrollViewRef.current?.scrollTo({
       x: index * cardWidth + padding,
       animated: true,
@@ -520,8 +522,8 @@ const AwardScreen: React.FC = () => {
 
   // Scroll to initial position (Gold tier - index 1) when screen loads
   useEffect(() => {
-    const cardWidth = width * 0.65;
-    const padding = width * 0.175;
+    const cardWidth = isTablet ? Math.min(width * 0.55, 500) : width * 0.65;
+    const padding = isTablet ? width * 0.15 : width * 0.175;
     // Ensure GOLD (index 1) is selected and scrolled to on mount
     setSelectedTierIndex(1);
     setTimeout(() => {
@@ -572,9 +574,6 @@ const AwardScreen: React.FC = () => {
             />
           </View>
         </TouchableOpacity>
-        <Text style={styles.headerText}>
-          {TIERS[selectedTierIndex]?.name || 'GOLD'} TIER APPROVED
-        </Text>
       </View>
 
       {/* Qualification Message */}
@@ -582,8 +581,11 @@ const AwardScreen: React.FC = () => {
         <Text style={styles.qualificationTitle}>
           You qualify for Instant Gold Cover
         </Text>
+        <Text style={styles.headerText}>
+          {TIERS[selectedTierIndex]?.name || 'GOLD'} TIER APPROVED
+        </Text>
         <Text style={styles.qualificationSubtitle}>
-          Based on your Bio-Score of 92, you have unlocked premium{'\n'}
+          Based on your Bio-Score, you have unlocked premium{'\n'}
           tier benefits at standard rates.
         </Text>
       </View>
@@ -597,17 +599,18 @@ const AwardScreen: React.FC = () => {
         onScroll={handleScroll}
         scrollEventThrottle={16}
         decelerationRate="fast"
-        snapToInterval={width * 0.65}
+        snapToInterval={isTablet ? Math.min(width * 0.55, 500) : width * 0.65}
         snapToAlignment="start"
         contentContainerStyle={{ 
           flexDirection: 'row',
-          paddingHorizontal: width * 0.175, // Show 17.5% of adjacent cards on each side
+          paddingHorizontal: isTablet ? width * 0.15 : width * 0.175, // Show 15% on tablet, 17.5% on phone
           paddingBottom: SPACING.md,
+          marginTop: isTablet ? SPACING.sm : -110,
         }}
         style={{ flex: 1 }}
       >
         {TIERS.map((tier, index) => {
-          const cardWidth = width * 0.65;
+          const cardWidth = isTablet ? Math.min(width * 0.55, 500) : width * 0.65;
           const inputRange = [
             (index - 1) * cardWidth,
             index * cardWidth,
@@ -778,7 +781,7 @@ const AwardScreen: React.FC = () => {
       <TouchableOpacity 
         style={styles?.applePayButton || {}} 
         activeOpacity={0.5}
-        onPress={() => navigation.navigate('Payment')}
+        onPress={() => navigation.navigate('CoverageSuccess')}
       >
         <Text style={styles?.applePayText || { color: '#FFFFFF', fontSize: 16 }}>Activate with</Text>
         <Image 

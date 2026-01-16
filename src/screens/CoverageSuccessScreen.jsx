@@ -7,6 +7,7 @@ import {
   StatusBar,
   Dimensions,
   Image,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, FONT_SIZES, SPACING, BORDER_RADIUS, Fonts } from '../constants/theme';
@@ -19,14 +20,9 @@ const CoverageSuccessScreen = ({ navigation }) => {
     navigation.goBack();
   };
 
-  const handleAddToWallet = () => {
-    // Handle add to Apple Wallet
-    console.log('Add to Apple Wallet');
-  };
-
-  const handleDownloadPDF = () => {
-    // Handle PDF download
-    console.log('Download PDF');
+  const handleClose = () => {
+    // Close the app
+    BackHandler.exitApp();
   };
 
   return (
@@ -94,24 +90,14 @@ const CoverageSuccessScreen = ({ navigation }) => {
             </View>
           </View>
 
-          {/* Buttons */}
+          {/* Close Button */}
           <View style={styles.buttonsContainer}>
-            {/* Add to Apple Wallet Button */}
             <TouchableOpacity
-              style={styles.walletButton}
-              onPress={handleAddToWallet}
+              style={styles.closeButton}
+              onPress={handleClose}
               activeOpacity={0.5}
             >
-              <Text style={styles.walletButtonText}>Add to Apple Wallet</Text>
-            </TouchableOpacity>
-
-            {/* Download PDF Button */}
-            <TouchableOpacity
-              style={styles.pdfButton}
-              onPress={handleDownloadPDF}
-              activeOpacity={0.5}
-            >
-              <Text style={styles.pdfButtonText}>Download PDF</Text>
+              <Text style={styles.closeButtonText}>Close</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -290,12 +276,13 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     marginTop: 'auto',
   },
-  walletButton: {
+  closeButton: {
     backgroundColor: '#3D28DE',
     paddingVertical: isTablet ? 20 : 18,
     paddingHorizontal: SPACING.xxl,
     borderRadius: BORDER_RADIUS.full,
-    marginBottom: SPACING.md,
+    width: isTablet ? '40%' : '100%',
+    alignSelf: isTablet ? 'center' : 'auto',
     shadowColor: COLORS.primary,
     shadowOffset: {
       width: 0,
@@ -305,21 +292,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
-  walletButtonText: {
+  closeButtonText: {
     color: COLORS.white,
-    fontSize: isTablet ? 20 : FONT_SIZES.h3,
-    fontFamily: Fonts.semiBold,
-    textAlign: 'center',
-    letterSpacing: 0.3,
-  },
-  pdfButton: {
-    backgroundColor: '#EAEAEA',
-    paddingVertical: isTablet ? 20 : 18,
-    paddingHorizontal: SPACING.xxl,
-    borderRadius: BORDER_RADIUS.full,
-  },
-  pdfButtonText: {
-    color: COLORS.textSecondary,
     fontSize: isTablet ? 20 : FONT_SIZES.h3,
     fontFamily: Fonts.semiBold,
     textAlign: 'center',

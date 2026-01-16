@@ -262,6 +262,8 @@ const styles = StyleSheet.create({
     paddingVertical: isTablet ? 20 : 14,
     borderRadius: BORDER_RADIUS.full,
     alignItems: 'center',
+    width: isTablet ? '40%' : '100%',
+    alignSelf: isTablet ? 'center' : 'auto',
   },
   startButtonText: {
     fontSize: isTablet ? 20 : FONT_SIZES.h3,

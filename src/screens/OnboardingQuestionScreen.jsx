@@ -259,7 +259,9 @@ const styles = StyleSheet.create({
     paddingVertical: isTablet ? 20 : 14,
     paddingHorizontal: isTablet ? SPACING.xxl * 2 : SPACING.xxl,
     borderRadius: BORDER_RADIUS.full,
-    width: '100%',
+    top: isTablet ? 20 : 0,
+    width: isTablet ? '40%' : '100%',
+    alignSelf: isTablet ? 'center' : 'auto',
   },
   primaryButton: {
     backgroundColor: COLORS.buttonPrimary,

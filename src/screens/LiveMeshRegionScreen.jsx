@@ -270,6 +270,8 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.full,
     alignItems: 'center',
     justifyContent: 'center',
+    width: isTablet ? '40%' : '100%',
+    alignSelf: isTablet ? 'center' : 'auto',
   },
   nextButtonText: {
     fontSize: isTablet ? 20 : FONT_SIZES.h3,

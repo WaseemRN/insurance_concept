@@ -11,6 +11,7 @@ import {
   PermissionsAndroid,
   Animated,
   Image,
+  Vibration,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
@@ -19,7 +20,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import { SPACING, FONT_SIZES, Fonts, COLORS } from '../constants/theme';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 const IDScanScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -111,10 +113,20 @@ const IDScanScreen: React.FC = () => {
         setIsScanning(false);
         setScanResult('ID Card scanned successfully!');
         
-        // Navigate to ConnectWatchScreen
+        // Vibrate once on success
+        console.log('Triggering vibration...', Platform.OS);
+        
+        // Call vibration immediately - use simple duration for both platforms
+        // Android accepts both number and pattern, but number is simpler
+        Vibration.vibrate(1000); // 1 second vibration - longer and more noticeable
+        console.log('Vibration called with duration 1000ms');
+        
+        // Wait to ensure vibration is felt before navigation
+        // Use longer delay to ensure vibration completes
         setTimeout(() => {
+          console.log('Navigating to ConnectWatch...');
           navigation.navigate('ConnectWatch');
-        }, 500);
+        }, 1200); // Wait 1.2 seconds to ensure vibration completes
       }, 8000);
     } catch (error) {
       console.error('Error starting scan:', error);
@@ -126,10 +138,6 @@ const IDScanScreen: React.FC = () => {
     }
   };
 
-  const handleStopScan = () => {
-    setIsScanning(false);
-    setScanResult(null);
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -155,7 +163,14 @@ const IDScanScreen: React.FC = () => {
                 />
               </View>
             </TouchableOpacity>
-            <Text style={styles.title}>ID Card Scan</Text>
+            <Text style={styles.title}>Identity verification</Text>
+          </View>
+
+          {/* Instructions - Above scan area */}
+          <View style={styles.instructionsContainer}>
+            <Text style={styles.instructionsText}>
+              Place your (Emirates ID/Passport) within the frame
+            </Text>
           </View>
 
           {/* Scan Area */}
@@ -233,28 +248,18 @@ const IDScanScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Instructions */}
-          <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsText}>
-              • Ensure good lighting{'\n'}
-              • Keep ID card flat and steady{'\n'}
-              • Make sure all text is visible
-            </Text>
-          </View>
-
           {/* Scan Button */}
-          <TouchableOpacity
-            style={[
-              styles.scanButton,
-              isScanning && styles.scanButtonActive,
-            ]}
-            onPress={isScanning ? handleStopScan : handleStartScan}
-            activeOpacity={0.5}
-          >
-            <Text style={styles.scanButtonText}>
-              {isScanning ? 'Stop Scanning' : 'Start Scan'}
-            </Text>
-          </TouchableOpacity>
+          {!isScanning && (
+            <TouchableOpacity
+              style={styles.scanButton}
+              onPress={handleStartScan}
+              activeOpacity={0.5}
+            >
+              <Text style={styles.scanButtonText}>
+                Start Scan
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ImageBackground>
     </SafeAreaView>
@@ -274,14 +279,14 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 20,
+    padding: isTablet ? SPACING.xxl : 20,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    left:-20,
-    marginBottom: 30,
-    marginTop: 20,
+    left: isTablet ? -SPACING.xxl : -20,
+    marginBottom: isTablet ? SPACING.xxl : 30,
+    marginTop: isTablet ? SPACING.xl : 20,
   },
   backButton: {
     marginLeft: SPACING.md,
@@ -301,7 +306,7 @@ const styles = StyleSheet.create({
     tintColor: COLORS.white,
   },
   title: {
-    fontSize: FONT_SIZES.h1,
+    fontSize: isTablet ? 36 : FONT_SIZES.h1,
     fontFamily: Fonts.semiBold,
     color: COLORS.white,
     flex: 1,
@@ -310,13 +315,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 20,
+    marginTop:  isTablet ? 20 : -160,
+    marginBottom: 0,
   },
   scanArea: {
-    width: width - 60,
-    height: (width - 60) * 0.6,
+    width: isTablet ? width - (SPACING.xxl * 4) : width - 20,
+    height: isTablet ? (width - (SPACING.xxl * 4)) * 0.4 : (width - 20) * 0.5,
+    maxWidth: isTablet ? 600 : width - 20,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 20,
+    borderRadius: isTablet ? 24 : 20,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.3)',
     justifyContent: 'center',
@@ -333,33 +340,33 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    right: 0,
-    height: '5%',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    right: 3,
+    height: '3%',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
   overlayBottom: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: '5%',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    height: '3%',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
   overlayLeft: {
     position: 'absolute',
     top: '5%',
     bottom: '5%',
     left: 0,
-    width: '5%',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    width: '3%',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
   overlayRight: {
     position: 'absolute',
     top: '5%',
     bottom: '5%',
     right: 0,
-    width: '5%',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    width: '3%',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
   placeholderContainer: {
     width: '100%',
@@ -376,8 +383,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   frameGuide: {
-    width: '90%',
-    height: '90%',
+    width: '95%',
+    height: '95%',
     position: 'absolute',
     zIndex: 10,
   },
@@ -385,7 +392,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 30,
     height: 30,
-    borderColor: '#D4AF37', // Light golden color
+    borderColor: '#00FF00', // Green color
     borderWidth: 3,
     top: 0,
     left: 0,
@@ -430,8 +437,8 @@ const styles = StyleSheet.create({
   scanLineGradient: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#D4AF37', // Light golden color
-    shadowColor: '#D4AF37',
+    backgroundColor: '#00FF00', // Green color
+    shadowColor: '#00FF00',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 8,
@@ -453,25 +460,29 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   instructionsContainer: {
-    marginBottom: 30,
+    marginTop: isTablet ? 120 : 80,
+    alignSelf: 'center',
+    marginBottom: 15,
+    position:  isTablet ? 'absolute' : 'relative',
     paddingHorizontal: 20,
   },
   instructionsText: {
-    fontSize: FONT_SIZES.bodySmall,
-    fontFamily: Fonts.medium,
-    color: COLORS.textSecondary,
+    fontSize: isTablet ? 22 : FONT_SIZES.h3,
+    fontFamily: Fonts.semiBold,
+    color: COLORS.white,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: isTablet ? 32 : 28,
   },
   scanButton: {
-    width: width - 80,
-    height: 60,
-    borderRadius: 30,
+    width: isTablet ? Math.min(width - (SPACING.xxl * 4), 500) : width - 80,
+    height: isTablet ? 70 : 60,
+    borderRadius: isTablet ? 35 : 30,
     backgroundColor: COLORS.buttonPrimary,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    marginBottom: 20,
+    marginTop: isTablet ? SPACING.xxl : SPACING.lg,
+    marginBottom: isTablet ? SPACING.xl : 20,
     shadowColor: COLORS.buttonPrimary,
     shadowOffset: {
       width: 0,
@@ -488,7 +499,7 @@ const styles = StyleSheet.create({
   },
   scanButtonText: {
     color: COLORS.white,
-    fontSize: FONT_SIZES.h3,
+    fontSize: isTablet ? 22 : FONT_SIZES.h3,
     fontFamily: Fonts.semiBold,
   },
 });
