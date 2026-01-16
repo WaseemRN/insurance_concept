@@ -76,7 +76,7 @@ const HealthScoreScreen = ({ navigation }) => {
               You qualify for Instant Gold Cover
             </Text>
             <Text style={styles.coverageSubtitle}>
-              Based on your Bio-Score of 92, you have unlocked gold tier
+              Based on your Bio-Score, you have unlocked gold tier
               benefits at standard rates.
             </Text>
 
@@ -341,6 +341,8 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     borderRadius: 30,
     elevation: 6,
+    width: isTablet ? '40%' : '100%',
+    alignSelf: isTablet ? 'center' : 'auto',
   },
   activateText: {
     color: COLORS.white,

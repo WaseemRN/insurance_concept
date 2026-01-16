@@ -8,7 +8,9 @@ import {
   Dimensions,
   Image,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -22,7 +24,7 @@ import {
 } from '../constants/theme';
 import backButton from '../assets/icons/backButton.png';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 const isTablet = width >= 768;
 
 // URLs
@@ -37,10 +39,25 @@ const LiveMeshScreen = ({ navigation }) => {
   const webViewRef = useRef(null);
   const timerRef = useRef(null);
   const [showWebView, setShowWebView] = useState(false); // Control when to show first URL
-  const [showLine1, setShowLine1] = useState(false); // Calibrating Vitals
-  const [showLine2, setShowLine2] = useState(false); // Detecting Heart Rate
-  const [showLine3, setShowLine3] = useState(false); // Analyzing Vocal Tone
+  const [showLine1, setShowLine1] = useState(false); // Heart Rate
+  const [showLine2, setShowLine2] = useState(false); // SpO2
+  const [showLine3, setShowLine3] = useState(false); // Stress Load
   const [showNextButton, setShowNextButton] = useState(false); // Next button visibility
+  const [showCalibratingMessage, setShowCalibratingMessage] = useState(false); // Hold Still message
+  const [isSecondUrlLoaded, setIsSecondUrlLoaded] = useState(false); // Track if second URL has loaded
+  const [stressLoadNormal, setStressLoadNormal] = useState(false); // Track if stress load should show "Normal"
+  const [heartRate, setHeartRate] = useState(0);
+  const [spo2, setSpo2] = useState(0);
+  const vitalsTimerRef = useRef(null);
+  const stressLoadTimerRef = useRef(null);
+  const currentUrlRef = useRef(LIVE_MESH_URL); // Track current URL with ref
+  
+  // Floating animations for cards and analyzing bubble
+  const analyzingBubbleAnim = useRef(new Animated.Value(0)).current;
+  const heartRateTopAnim = useRef(new Animated.Value(0)).current;
+  const spo2Anim = useRef(new Animated.Value(0)).current;
+  const heartRateBottomAnim = useRef(new Animated.Value(0)).current;
+  const stressLoadAnim = useRef(new Animated.Value(0)).current;
 
   // Clean up timers and WebView when navigating away
   useEffect(() => {
@@ -67,36 +84,45 @@ const LiveMeshScreen = ({ navigation }) => {
     // Reset states when screen mounts
     setShowWebView(false);
     setCurrentUrl(LIVE_MESH_URL);
+    currentUrlRef.current = LIVE_MESH_URL; // Reset ref
     setCurrentTitle('Live Mesh');
     setLoading(true);
+    setShowCalibratingMessage(false);
+    setIsSecondUrlLoaded(false);
+    setShowLine1(false);
+    setShowLine2(false);
+    setShowLine3(false);
+    setShowNextButton(false);
+    setStressLoadNormal(false);
 
     // Show first URL after a short delay
     const showFirstUrlTimer = setTimeout(() => {
       setShowWebView(true);
       setWebViewKey(prev => prev + 1);
+      setShowCalibratingMessage(true); // Show calibrating message while first URL is active
     }, 500); // Small delay before showing first URL
 
     // After 30 seconds, switch to second URL
     timerRef.current = setTimeout(() => {
-      // Show toast message
-      Toast.show({
-        type: 'success',
-        text1: 'Facial Identification Complete',
-        text2: 'Your facial identification is done. Now vitals calculation are in process.',
-        visibilityTime: 4000,
-      });
-
       // Switch to second URL and update title
       setCurrentUrl(LIVE_MESH_REGION_URL);
+      currentUrlRef.current = LIVE_MESH_REGION_URL; // Update ref
       setCurrentTitle('Live Mesh Region');
       setWebViewKey(prev => prev + 1);
       setLoading(true);
+      setShowCalibratingMessage(false); // Hide calibrating message when switching to second URL
     }, 30000); // 30 seconds
 
     return () => {
       clearTimeout(showFirstUrlTimer);
       if (timerRef.current) {
         clearTimeout(timerRef.current);
+      }
+      if (vitalsTimerRef.current) {
+        clearTimeout(vitalsTimerRef.current);
+      }
+      if (stressLoadTimerRef.current) {
+        clearTimeout(stressLoadTimerRef.current);
       }
     };
   }, []);
@@ -115,56 +141,79 @@ const LiveMeshScreen = ({ navigation }) => {
     }, [])
   );
 
-  // Handle status lines and Next button timing - reset when screen is focused
+  // Clean up vitals timers when screen loses focus
   useFocusEffect(
     useCallback(() => {
-      // Reset all states when screen is focused
-      setShowLine1(false);
-      setShowLine2(false);
-      setShowLine3(false);
-      setShowNextButton(false);
-
-      // Show first line (Calculating Vitals) after 20 seconds
-      const timer1 = setTimeout(() => {
-        setShowLine1(true);
-      }, 20000);
-
-      // Show second line after 22 seconds (2 seconds after first)
-      const timer2 = setTimeout(() => {
-        setShowLine2(true);
-      }, 22000);
-
-      // Show third line after 24 seconds (2 seconds after second)
-      const timer3 = setTimeout(() => {
-        setShowLine3(true);
-      }, 24000);
-
-      // Show Next button after 30 seconds
-      const timer4 = setTimeout(() => {
-        setShowNextButton(true);
-      }, 30000);
-
       return () => {
-        clearTimeout(timer1);
-        clearTimeout(timer2);
-        clearTimeout(timer3);
-        clearTimeout(timer4);
+        if (vitalsTimerRef.current) {
+          clearTimeout(vitalsTimerRef.current);
+          vitalsTimerRef.current = null;
+        }
+        if (stressLoadTimerRef.current) {
+          clearTimeout(stressLoadTimerRef.current);
+          stressLoadTimerRef.current = null;
+        }
       };
     }, [])
   );
 
+  // Start floating bubbles animation when second URL loads
+  useEffect(() => {
+    if (isSecondUrlLoaded) {
+      // Create floating animations for each bubble
+      const createFloatingAnimation = (animValue, delay = 0, duration = 3000) => {
+        return Animated.loop(
+          Animated.sequence([
+            Animated.delay(delay),
+            Animated.timing(animValue, {
+              toValue: 1,
+              duration: duration,
+              useNativeDriver: true,
+            }),
+            Animated.timing(animValue, {
+              toValue: 0,
+              duration: duration,
+              useNativeDriver: true,
+            }),
+          ])
+        );
+      };
+
+      // Start all animations with different delays and durations
+      Animated.parallel([
+        createFloatingAnimation(analyzingBubbleAnim, 0, 2500),
+        createFloatingAnimation(heartRateTopAnim, 200, 2800),
+        createFloatingAnimation(spo2Anim, 400, 3000),
+        createFloatingAnimation(heartRateBottomAnim, 300, 2700),
+        createFloatingAnimation(stressLoadAnim, 500, 2900),
+      ]).start();
+    }
+  }, [isSecondUrlLoaded]);
+
   const handleBack = () => {
-    // Clear timer if navigating away
+    // Clear timers if navigating away
     if (timerRef.current) {
       clearTimeout(timerRef.current);
+    }
+    if (vitalsTimerRef.current) {
+      clearTimeout(vitalsTimerRef.current);
+    }
+    if (stressLoadTimerRef.current) {
+      clearTimeout(stressLoadTimerRef.current);
     }
     navigation.goBack();
   };
 
   const handleNext = () => {
-    // Clear timer if navigating away
+    // Clear timers if navigating away
     if (timerRef.current) {
       clearTimeout(timerRef.current);
+    }
+    if (vitalsTimerRef.current) {
+      clearTimeout(vitalsTimerRef.current);
+    }
+    if (stressLoadTimerRef.current) {
+      clearTimeout(stressLoadTimerRef.current);
     }
     navigation.navigate('Recording');
   };
@@ -207,7 +256,44 @@ const LiveMeshScreen = ({ navigation }) => {
             }}
             onLoadEnd={() => {
               setLoading(false);
-              console.log('WebView load ended - URL:', currentUrl);
+              console.log('WebView load ended - URL:', currentUrlRef.current);
+              
+              // Check if second URL has loaded
+              if (currentUrlRef.current === LIVE_MESH_REGION_URL && !isSecondUrlLoaded) {
+                setIsSecondUrlLoaded(true);
+                
+                // Generate random values for vitals
+                const randomHeartRate = Math.floor(Math.random() * (100 - 60 + 1)) + 60; // 60-100 BPM
+                const randomSpo2 = Math.floor(Math.random() * (100 - 95 + 1)) + 95; // 95-100%
+                
+                setHeartRate(randomHeartRate);
+                setSpo2(randomSpo2);
+                
+                // Wait 5 seconds after second URL loads, then show vitals lines
+                vitalsTimerRef.current = setTimeout(() => {
+                  // Show first line (Heart Rate)
+                  setShowLine1(true);
+                  
+                  // Show second line after 2 seconds
+                  setTimeout(() => {
+                    setShowLine2(true);
+                  }, 2000);
+                  
+                  // Show third line after 4 seconds
+                  setTimeout(() => {
+                    setShowLine3(true);
+                    // Change "Calculating..." to "Normal" after 2.5 seconds
+                    stressLoadTimerRef.current = setTimeout(() => {
+                      setStressLoadNormal(true);
+                    }, 2500);
+                  }, 4000);
+                  
+                  // Show Next button after 6 seconds
+                  setTimeout(() => {
+                    setShowNextButton(true);
+                  }, 6000);
+                }, 5000); // 5 seconds after second URL loads
+              }
             }}
             onError={(syntheticEvent) => {
               const { nativeEvent } = syntheticEvent;
@@ -243,18 +329,213 @@ const LiveMeshScreen = ({ navigation }) => {
           </View>
         </TouchableOpacity>
 
-        {/* Status Lines - Bottom above Next button */}
-        <View style={styles.statusLinesContainer}>
-          {showLine1 && (
-            <Text style={styles.statusLine}>Calculating Vitals...</Text>
-          )}
-          {showLine2 && (
-            <Text style={styles.statusLine}>Detecting Heart Rate...</Text>
-          )}
-          {showLine3 && (
-            <Text style={styles.statusLine}>Analyzing Vocal Tone...</Text>
-          )}
-        </View>
+        {/* Calibrating Message - Top middle of screen */}
+        {showCalibratingMessage && (
+          <View style={styles.statusLinesContainer}>
+            <View style={styles.calibratingContainer}>
+              <Text style={styles.holdStillText}>Hold Still.</Text>
+              <Text style={styles.calibratingText}>Calibrating Sensors...</Text>
+            </View>
+          </View>
+        )}
+
+        {/* Floating Analyzing Bubble */}
+        {isSecondUrlLoaded && (
+          <Animated.View
+            style={[
+              styles.floatingBubble,
+              {
+                top: height * 0.25,
+                left: width * 0.5 - 40,
+                opacity: analyzingBubbleAnim.interpolate({
+                  inputRange: [0, 0.5, 1],
+                  outputRange: [0.6, 1, 0.6],
+                }),
+                transform: [
+                  {
+                    translateY: analyzingBubbleAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, -20],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <Text style={styles.bubbleText}>Analyzing...</Text>
+          </Animated.View>
+        )}
+
+        {/* Vitals Cards - Positioned around the face */}
+        {isSecondUrlLoaded && (
+          <>
+            {/* Top Left Card - Heart Rate */}
+            {showLine1 && (
+              <Animated.View
+                style={[
+                  styles.vitalCard,
+                  styles.topLeftCard,
+                  {
+                    transform: [
+                      {
+                        translateY: heartRateTopAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, -15],
+                        }),
+                      },
+                    ],
+                    opacity: heartRateTopAnim.interpolate({
+                      inputRange: [0, 0.5, 1],
+                      outputRange: [0.8, 1, 0.8],
+                    }),
+                  },
+                ]}
+              >
+                <LinearGradient
+                  colors={['rgba(0, 255, 255, 0.2)', 'rgba(0, 255, 255, 0.05)', 'rgba(0, 255, 255, 0.2)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.cardGradient}
+                >
+                  <View style={styles.cardContent}>
+                    <Text style={styles.vitalCardStatus}>Heart Rate: Detecting...</Text>
+                    <Text style={styles.vitalCardValue}>{heartRate} BPM</Text>
+                  </View>
+                </LinearGradient>
+              </Animated.View>
+            )}
+
+            {/* Top Right Card - SpO2 */}
+            {showLine2 && (
+              <Animated.View
+                style={[
+                  styles.vitalCard,
+                  styles.topRightCard,
+                  {
+                    transform: [
+                      {
+                        translateX: spo2Anim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, 12],
+                        }),
+                      },
+                      {
+                        translateY: spo2Anim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, -12],
+                        }),
+                      },
+                    ],
+                    opacity: spo2Anim.interpolate({
+                      inputRange: [0, 0.5, 1],
+                      outputRange: [0.8, 1, 0.8],
+                    }),
+                  },
+                ]}
+              >
+                <LinearGradient
+                  colors={['rgba(0, 255, 255, 0.2)', 'rgba(0, 255, 255, 0.05)', 'rgba(0, 255, 255, 0.2)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.cardGradient}
+                >
+                  <View style={styles.cardContent}>
+                    <Text style={styles.vitalCardStatus}>SpO2: Analysis...</Text>
+                    <View style={styles.valueRow}>
+                      <Text style={styles.arrowSymbol}>↑ </Text>
+                      <Text style={styles.vitalCardValue}>{spo2}%</Text>
+                    </View>
+                  </View>
+                </LinearGradient>
+              </Animated.View>
+            )}
+
+            {/* Bottom Left Card - Heart Rate (duplicate) */}
+            {showLine1 && (
+              <Animated.View
+                style={[
+                  styles.vitalCard,
+                  styles.bottomLeftCard,
+                  {
+                    transform: [
+                      {
+                        translateX: heartRateBottomAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, -12],
+                        }),
+                      },
+                      {
+                        translateY: heartRateBottomAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, 15],
+                        }),
+                      },
+                    ],
+                    opacity: heartRateBottomAnim.interpolate({
+                      inputRange: [0, 0.5, 1],
+                      outputRange: [0.8, 1, 0.8],
+                    }),
+                  },
+                ]}
+              >
+                <LinearGradient
+                  colors={['rgba(0, 255, 255, 0.2)', 'rgba(0, 255, 255, 0.05)', 'rgba(0, 255, 255, 0.2)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.cardGradient}
+                >
+                  <View style={styles.cardContent}>
+                    <Text style={styles.vitalCardStatus}>Heart Rate:</Text>
+                    <Text style={styles.vitalCardValue}>{heartRate} BPM</Text>
+                  </View>
+                </LinearGradient>
+              </Animated.View>
+            )}
+
+            {/* Bottom Right Card - Stress Load */}
+            {showLine3 && (
+              <Animated.View
+                style={[
+                  styles.vitalCard,
+                  styles.bottomRightCard,
+                  {
+                    transform: [
+                      {
+                        translateX: stressLoadAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, 12],
+                        }),
+                      },
+                      {
+                        translateY: stressLoadAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, 15],
+                        }),
+                      },
+                    ],
+                    opacity: stressLoadAnim.interpolate({
+                      inputRange: [0, 0.5, 1],
+                      outputRange: [0.8, 1, 0.8],
+                    }),
+                  },
+                ]}
+              >
+                <LinearGradient
+                  colors={['rgba(0, 255, 255, 0.2)', 'rgba(0, 255, 255, 0.05)', 'rgba(0, 255, 255, 0.2)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.cardGradient}
+                >
+                  <View style={styles.cardContent}>
+                    <Text style={styles.vitalCardStatus}>
+                      Stress Load: {stressLoadNormal ? 'Normal' : 'Calculating...'}
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </Animated.View>
+            )}
+          </>
+        )}
 
         {/* Next Button */}
         {showNextButton && (
@@ -348,6 +629,8 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.full,
     alignItems: 'center',
     justifyContent: 'center',
+    width: isTablet ? '40%' : '100%',
+    alignSelf: isTablet ? 'center' : 'auto',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -360,22 +643,153 @@ const styles = StyleSheet.create({
     top:-2,
     color: COLORS.white,
   },
-  // Status Lines Container
+  // Status Lines Container (for calibrating message)
   statusLinesContainer: {
     position: 'absolute',
-    bottom: 100,
-    left: isTablet ? SPACING.xxl * 2 : SPACING.lg,
-    right: isTablet ? SPACING.xxl * 2 : SPACING.lg,
-    alignItems: 'flex-start',
+    top: isTablet ? SPACING.xxl * 2 : SPACING.xl * 2,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
     zIndex: 11,
   },
-  statusLine: {
-    fontSize: FONT_SIZES.body,
-    fontFamily: Fonts.regular,
-    color: COLORS.white,
+  calibratingContainer: {
+    alignItems: 'center',
+  },
+  holdStillText: {
+    fontSize: isTablet ? FONT_SIZES.h2 : FONT_SIZES.h3,
+    fontFamily: Fonts.bold,
+    fontWeight: '700',
+    color: '#00FFFF', // Cyan color
+    textAlign: 'center',
     marginBottom: SPACING.xs,
-    textAlign: 'left',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  calibratingText: {
+    fontSize: FONT_SIZES.body,
+    fontFamily: Fonts.medium,
+    fontWeight: '500',
+    color: '#00FFFF', // Cyan color
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+    top: -5,
+  },
+  // Vitals Cards
+  vitalCard: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)', // Decreased opacity for more transparency
+    borderWidth: 2,
+    borderColor: '#00FFFF', // Cyan border
+    borderRadius: isTablet ? 50 : 45, // Make it circular - decreased size
+    width: isTablet ? 100 : 90, // Fixed width for circle - decreased
+    height: isTablet ? 100 : 90, // Fixed height for circle - decreased
+    zIndex: 11,
+    shadowColor: '#00FFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
+    elevation: 8,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cardGradient: {
+    borderRadius: isTablet ? 48 : 43, // Match parent border radius
+    paddingHorizontal: isTablet ? 10 : 8, // Decreased padding
+    paddingVertical: isTablet ? 8 : 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Add dark background to gradient for text readability
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cardContent: {
+    backgroundColor: 'transparent', // Ensure content doesn't have background
+  },
+  topLeftCard: {
+    top: isTablet ? '10%' : '8%', // Moved more up
+    left: isTablet ? SPACING.xxl * 2 : SPACING.md,
+    marginTop: isTablet ? SPACING.lg : SPACING.md, // Add margin top
+    marginHorizontal: isTablet ? SPACING.xxl * 2 : 0,
+  },
+  topRightCard: {
+    top: isTablet ? '20%' : '18%',
+    right: isTablet ? SPACING.xxl * 2 : SPACING.md,
+    marginHorizontal: isTablet ? SPACING.xxl * 2 : 0,
+  },
+  bottomLeftCard: {
+    bottom: isTablet ? '35%' : '33%', // Moved more up
+    left: isTablet ? SPACING.xxl * 2 : SPACING.md,
+    marginHorizontal: isTablet ? SPACING.xxl * 2 : 0,
+  },
+  bottomRightCard: {
+    bottom: isTablet ? '35%' : '33%', // Moved more up
+    right: isTablet ? SPACING.xxl * 2 : SPACING.md,
+    marginHorizontal: isTablet ? SPACING.xxl * 2 : 0,
+  },
+  vitalCardStatus: {
+    fontSize: isTablet ? 11 : 10, // Decreased font size
+    fontFamily: Fonts.medium,
+    fontWeight: '500',
+    color: '#00FFFF', // Bright cyan for status
+    marginBottom: isTablet ? 6 : 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+    backgroundColor: 'transparent', // Ensure no background color
+    textAlign: 'center',
+  },
+  vitalCardValue: {
+    fontSize: isTablet ? FONT_SIZES.h3 : FONT_SIZES.body, // Decreased font size
+    fontFamily: Fonts.bold,
+    fontWeight: '700',
+    color: '#00FFFF', // Bright cyan for values
+    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+    backgroundColor: 'transparent', // Ensure no background color
+    textAlign: 'center',
+  },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'transparent', // Ensure no background color
+  },
+  arrowSymbol: {
+    fontSize: isTablet ? FONT_SIZES.body : 14, // Decreased font size
+    fontFamily: Fonts.bold,
+    fontWeight: '700',
+    color: '#00FFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+    backgroundColor: 'transparent', // Ensure no background color
+  },
+  // Floating Bubbles
+  floatingBubble: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0, 255, 255, 0.2)',
+    borderWidth: 1.5,
+    borderColor: '#00FFFF',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    zIndex: 9,
+    shadowColor: '#00FFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  bubbleText: {
+    fontSize: 11,
+    fontFamily: Fonts.medium,
+    fontWeight: '500',
+    color: '#00FFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },

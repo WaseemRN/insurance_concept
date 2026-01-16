@@ -303,8 +303,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: isTablet ? SPACING.xxl * 2 : SPACING.xxl,
     borderRadius: BORDER_RADIUS.full,
     marginBottom: SPACING.sm,
-    width: isTablet ? '60%' : '100%',
-   
+    width: isTablet ? '40%' : '100%',
+    alignSelf: isTablet ? 'center' : 'auto',
   },
   primaryButtonText: {
     color: COLORS.white,
@@ -319,7 +319,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: isTablet ? SPACING.xxl * 2 : SPACING.xxl,
     borderRadius: BORDER_RADIUS.full,
     marginBottom: SPACING.md,
-    width: isTablet ? '60%' : '100%',
+    width: isTablet ? '40%' : '100%',
+    alignSelf: isTablet ? 'center' : 'auto',
   },
   secondaryButtonText: {
     color: COLORS.textPrimary,
@@ -419,7 +420,8 @@ const styles = StyleSheet.create({
     paddingVertical: isTablet ? 18 : 14,
     paddingHorizontal: isTablet ? SPACING.xxl * 2 : SPACING.xxl,
     borderRadius: BORDER_RADIUS.full,
-    width: '100%',
+    width: isTablet ? '40%' : '100%',
+    alignSelf: isTablet ? 'center' : 'auto',
     alignItems: 'center',
     justifyContent: 'center',
   },

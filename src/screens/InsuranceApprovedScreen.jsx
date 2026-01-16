@@ -9,7 +9,7 @@ import {
   Dimensions,
   ImageBackground,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import {
   COLORS,
@@ -27,6 +27,7 @@ const isTablet = width >= 768;
 
 const InsuranceApprovedScreen = ({ navigation, route }) => {
   const [selectedIdentity, setSelectedIdentity] = useState(route.params?.selectedIdentity || null);
+  const insets = useSafeAreaInsets();
 
   // Update identity when route params change
   useEffect(() => {
@@ -68,12 +69,19 @@ const InsuranceApprovedScreen = ({ navigation, route }) => {
           <Image
             source={familyImage}
             style={styles.familyImage}
-            resizeMode="cover"
+            resizeMode={isTablet ? "contain" : "cover"}
           />
         </View>
 
         {/* Content Card */}
-        <View style={styles.contentCard}>
+        <View style={[
+          styles.contentCard,
+          isTablet && {
+            marginLeft: -insets.left,
+            marginRight: -insets.right,
+            width: width + insets.left + insets.right,
+          }
+        ]}>
           <View style={styles.cardInner}>
             <Text style={styles.title}>Insurance Approved</Text>
 
@@ -110,14 +118,17 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    top: isTablet ? '18%' : '8%',
+    top: isTablet ? '5%' : '8%',
+    width: '100%',
+    alignSelf: 'stretch',
   },
 
   /* IMAGE SECTION */
   imageSection: {
-    flex: isTablet ? 0.5 : 0.5,
+    flex: isTablet ? 0.55 : 0.5,
     width: '100%',
-    // top:160,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   familyImage: {
     width: '100%',
@@ -126,12 +137,14 @@ const styles = StyleSheet.create({
 
   /* CARD */
   contentCard: {
-    flex: isTablet ? 0.4 : 0.45,
+    flex: isTablet ? 0.45 : 0.45,
     backgroundColor: COLORS.white,
     borderTopLeftRadius: BORDER_RADIUS.xl,
     borderTopRightRadius: BORDER_RADIUS.xl,
     paddingTop: SPACING.xl,
     paddingHorizontal: isTablet ? SPACING.xl * 2 : SPACING.md,
+    width: '100%',
+    alignSelf: 'stretch',
   },
   cardInner: {
     alignItems: 'flex-start',
@@ -175,10 +188,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.buttonPrimary,
     borderRadius: BORDER_RADIUS.full,
     marginBottom: SPACING.sm,
-    width: isTablet ? '60%' : '100%',
-    // height: isTablet ? 56 : 52,
-    // justifyContent: 'center',
-    // alignItems: 'center',
+    width: isTablet ? '40%' : '100%',
+    alignSelf: isTablet ? 'center' : 'auto',
     paddingVertical: 14,
   },
 

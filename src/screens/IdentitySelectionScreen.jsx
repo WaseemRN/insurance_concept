@@ -132,6 +132,25 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: isTablet ? SPACING.xl * 2 : SPACING.lg,
   },
+  buttonContainer: {
+    paddingHorizontal: isTablet ? SPACING.xl * 2 : SPACING.lg,
+    paddingBottom: SPACING.lg,
+  },
+  nextButton: {
+    backgroundColor: COLORS.buttonPrimary,
+    borderRadius: BORDER_RADIUS.full,
+    paddingVertical: isTablet ? 18 : 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: isTablet ? '40%' : '100%',
+    alignSelf: isTablet ? 'center' : 'auto',
+  },
+  nextButtonText: {
+    color: COLORS.white,
+    top:-2,
+    fontSize: isTablet ? 20 : FONT_SIZES.h2,
+    fontFamily: Fonts.semiBold,
+  },
 });
 
 export default IdentitySelectionScreen;

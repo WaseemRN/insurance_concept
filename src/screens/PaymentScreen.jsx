@@ -28,6 +28,7 @@ const PaymentScreen = ({ navigation }) => {
 
   const handleApplePay = () => {
     console.log('Apple Pay selected');
+    navigation.navigate('CoverageSuccess');
   };
 
   const handleCreditCard = () => {
@@ -171,6 +172,8 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     borderWidth: 1,
     borderColor: '#DBEAFE',
+    width: isTablet ? '40%' : '100%',
+    alignSelf: isTablet ? 'center' : 'auto',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -251,7 +254,8 @@ const styles = StyleSheet.create({
     paddingVertical: isTablet ? 20 : 18,
     paddingHorizontal: isTablet ? SPACING.xxl * 2 : SPACING.xxl,
     borderRadius: BORDER_RADIUS.full,
-    width: '100%',
+    width: isTablet ? '40%' : '100%',
+    alignSelf: isTablet ? 'center' : 'auto',
     shadowColor: COLORS.primary,
     shadowOffset: {
       width: 0,
