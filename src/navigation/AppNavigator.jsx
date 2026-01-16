@@ -17,6 +17,7 @@ import HealthRecord from '../screens/HealthRecord';
 import IDScanScreen from '../screens/IDScanScreen';
 import LiveMeshScreen from '../screens/LiveMeshScreen';
 import LiveMeshRegionScreen from '../screens/LiveMeshRegionScreen';
+import AllQuestionsScreen from '../screens/AllQuestionsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -24,7 +25,7 @@ const AppNavigator = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Splash"
+        initialRouteName="Flash"
         screenOptions={{
           headerShown: false,
           animation: 'slide_from_right',
@@ -51,6 +52,10 @@ const AppNavigator = () => {
         <Stack.Screen
           name="ConnectWatch"
           component={ConnectWatchScreen}
+        />
+         <Stack.Screen
+          name="AllQuestions"
+          component={AllQuestionsScreen}
         />
         <Stack.Screen
           name="OnboardingQuestion"

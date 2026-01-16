@@ -8,21 +8,27 @@ import {
   Dimensions,
 } from 'react-native';
 import { COLORS, FONT_SIZES, SPACING, BORDER_RADIUS, Fonts } from '../constants/theme';
+import { triggerHeavyHaptic } from '../utils/haptics';
 
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
 const icons = {
-  person: require('../assets/icons/Profile.png'),
+  person: require('../assets/icons/idCard.png'),
   plane: require('../assets/icons/plane-solid.png'),
   building: require('../assets/icons/buildingFill.png'),
 };
 
 const IdentityCard = ({ icon, title, subtitle, onPress, selected }) => {
+  const handlePress = () => {
+    triggerHeavyHaptic();
+    onPress?.();
+  };
+
   return (
     <TouchableOpacity
       style={[styles.cardContainer, selected && styles.cardSelected]}
-      onPress={onPress}
+      onPress={handlePress}
       activeOpacity={0.7}
     >
       <View style={[styles.iconContainer, selected && styles.iconContainerSelected]}>
@@ -43,58 +49,74 @@ const IdentityCard = ({ icon, title, subtitle, onPress, selected }) => {
 
 const styles = StyleSheet.create({
   cardContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    width: '80%',
+    maxWidth: isTablet ? 560 : '100%', // 🔥 narrower cards on tablet
+    alignSelf: 'center',               // 🔥 center horizontally
     backgroundColor: COLORS.white,
-    borderRadius: BORDER_RADIUS.md,
-    paddingVertical: isTablet ? SPACING.lg : 18,
-    paddingHorizontal: isTablet ? SPACING.lg : SPACING.md,
-    marginBottom: SPACING.sm + 4,
+    borderRadius: BORDER_RADIUS.lg,
+    paddingVertical: isTablet ? SPACING.lg : SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    marginBottom: SPACING.md,
+    alignItems: 'center',              // 🔥 center content
     borderWidth: 1,
-    borderColor: '#E8E8E8',
+    borderColor: '#E6EEFF',
   },
+
   cardSelected: {
     borderColor: COLORS.primary,
     backgroundColor: '#FAFAFF',
   },
+
   iconContainer: {
-    width: isTablet ? 52 : 40,
-    height: isTablet ? 52 : 40,
+    width: isTablet ? 56 : 48,
+    height: isTablet ? 56 : 48,
     borderRadius: BORDER_RADIUS.sm,
-    backgroundColor: '#F5F5F5',
+    borderWidth: 1,
+    borderColor: '#E6EEFF',
+    backgroundColor: '#F8FAFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: SPACING.md - 2,
+    marginBottom: SPACING.sm, // 🔥 vertical stack
   },
+
   iconContainerSelected: {
     backgroundColor: '#EEF2FF',
+    borderColor: COLORS.primary,
   },
+
   icon: {
-    width: isTablet ? 24 : 20,
-    height: isTablet ? 24 : 20,
-    tintColor: COLORS.textPrimary,
+    width: isTablet ? 28 : 24,
+    height: isTablet ? 28 : 24,
+    tintColor:COLORS.textSecondary
   },
+
   iconSelected: {
     tintColor: COLORS.primary,
   },
+
   textContainer: {
-    flex: 1,
-    justifyContent: 'center',
+    alignItems: 'center', // 🔥 center text
   },
+
   title: {
-    fontSize: isTablet ? FONT_SIZES.h3 : FONT_SIZES.body,
+    fontSize: isTablet ? 20 : 20,
     fontFamily: Fonts.semiBold,
     color: COLORS.textPrimary,
-    marginBottom: 1,
+    marginBottom: 4,
+    textAlign: 'center',
   },
+
   titleSelected: {
     color: COLORS.primary,
   },
+
   subtitle: {
-    fontSize: isTablet ? FONT_SIZES.bodySmall : FONT_SIZES.caption,
-    fontFamily: Fonts.regular,
+    fontSize: 16,
+    fontFamily: Fonts.medium,
     color: COLORS.caption,
+    textAlign: 'center',
   },
 });
+
 
 export default IdentityCard;
